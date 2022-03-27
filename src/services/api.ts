@@ -1,10 +1,11 @@
 import axios, { AxiosError } from "axios";
-import { signOut } from "../contexts/AuthContext";
 import { parseCookies, setCookie } from "nookies";
+import { signOut } from "../contexts/AuthContext";
 
-let cookies = parseCookies();
 let isRefreshing = false;
 let failedRequestsQueue = [];
+
+let cookies = parseCookies();
 
 export const api = axios.create({
   baseURL: "http://localhost:3333",
@@ -21,6 +22,7 @@ api.interceptors.response.use(
         cookies = parseCookies();
 
         const { "nextAuth.refreshToken": refreshToken } = cookies;
+
         const originalConfig = error.config;
 
         if (!isRefreshing) {
@@ -55,10 +57,8 @@ api.interceptors.response.use(
               );
               failedRequestsQueue = [];
             })
-            .catch((error) => {
-              failedRequestsQueue.forEach((request) =>
-                request.onFailure(error)
-              );
+            .catch((err) => {
+              failedRequestsQueue.forEach((request) => request.onFailure(err));
               failedRequestsQueue = [];
             })
             .finally(() => {
@@ -73,8 +73,8 @@ api.interceptors.response.use(
 
               resolve(api(originalConfig));
             },
-            onFailure: (error: AxiosError) => {
-              reject(error);
+            onFailure: (err: AxiosError) => {
+              reject(err);
             },
           });
         });
